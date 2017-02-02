@@ -59,7 +59,7 @@ bot.onText(/\/기억 (\S+) (.+)/, (msg, match) => {
 });
 
 bot.onText(/\/알려$/, (msg, match) => {
-  Models.dictionary.find().count()
+  Models.dictionary.find().distinct('keyword').count()
     .catch(err => bot.sendMessage(msg.chat.id, `${ERROR_MSG} ${err}`))
     .then(count => {
       const message = '저는 ' + count + '개의 단어를 알고있어요.' 
@@ -68,7 +68,7 @@ bot.onText(/\/알려$/, (msg, match) => {
 });
 
 bot.onText(/\/알려줘$/, (msg, match) => {
-  Models.dictionary.find()
+  Models.dictionary.find().distinct('keyword')
     .catch(err => bot.sendMessage(msg.chat.id, `${ERROR_MSG} ${err}`))
     .then(docs => {
       const keywords = docs.map(doc => doc.keyword);
@@ -80,17 +80,19 @@ bot.onText(/\/알려줘$/, (msg, match) => {
 
 bot.onText(/\/알려 (.+)/, (msg, match) => {
   const keyword = match[1];
-  Models.dictionary.findOne({ keyword })
+  Models.dictionary.find({ keyword })
     .catch(err => bot.sendMessage(msg.chat.id, `${ERROR_MSG} ${err}`))
-    .then(doc => {
+    .then(docs => {
       if (!doc) return bot.sendMessage(msg.chat.id, ERROR_MSG.NOT_FOUND);
-      return bot.sendMessage(msg.chat.id, doc.definition);
+      const definitions = docs.map(doc => doc.definition);
+      definitions.join(', ');
+      return bot.sendMessage(msg.chat.id, definitions);
     });
 });
 
 bot.onText(/\/잊어 (.+)/, (msg, match) => {
   const keyword = match[1];
-  Models.dictionary.findOneAndRemove({ keyword })
+  Models.dictionary.find({ keyword }).remove()
     .catch(err => bot.sendMessage(msg.chat.id, `${ERROR_MSG} ${err}`))
     .then((doc) => {
       if (!doc) return bot.sendMessage(msg.chat.id, ERROR_MSG.NOT_FOUND);
