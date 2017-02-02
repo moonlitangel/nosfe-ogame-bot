@@ -6,7 +6,7 @@ const Dictionary = mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    dropDup: true,
+    dropDups: true,
   },
   definition: {
     type: String,
