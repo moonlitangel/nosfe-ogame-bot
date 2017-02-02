@@ -55,7 +55,7 @@ bot.onText(/\/기억 (\S+) (.+)/, (msg, match) => {
 });
 
 bot.onText(/\/알려$/, (msg, match) => {
-  Models.dictionary.distinct('keyword')
+  Models.dictionary.find().distinct('keyword')
     .catch(err => bot.sendMessage(msg.chat.id, `${ERROR_MSG} ${err}`))
     .then(docs => {
       const message = '저는 ' + docs.length + '개의 단어를 알고있어요.' 
@@ -64,7 +64,7 @@ bot.onText(/\/알려$/, (msg, match) => {
 });
 
 bot.onText(/\/알려줘$/, (msg, match) => {
-  Models.dictionary.distinct('keyword')
+  Models.dictionary.find().distinct('keyword')
     .catch(err => bot.sendMessage(msg.chat.id, `${ERROR_MSG} ${err}`))
     .then(docs => {
       const keywords = keywords.join(', ');
