@@ -71,8 +71,8 @@ bot.onText(/\/알려줘$/, (msg, match) => {
   Models.dictionary.find()
     .catch(err => bot.sendMessage(msg.chat.id, `${ERROR_MSG} ${err}`))
     .then(docs => {
-      const keywords = docs.map(doc => doc.keyword);
-      keywords.join(', ');
+      let keywords = docs.map(doc => doc.keyword);
+      keywords = keywords.join(', ');
       const message = '저는 이런 단어들을 알고있어요.\n' + keywords; 
       return bot.sendMessage(msg.chat.id, message);
     });
@@ -84,8 +84,8 @@ bot.onText(/\/알려 (.+)/, (msg, match) => {
     .catch(err => bot.sendMessage(msg.chat.id, `${ERROR_MSG} ${err}`))
     .then(docs => {
       if (!docs) return bot.sendMessage(msg.chat.id, ERROR_MSG.NOT_FOUND);
-      const definitions = docs.map(doc => doc.definition);
-      definitions.join(', ');
+      let definitions = docs.map(doc => doc.definition);
+      definitions = definitions.join(', ');
       return bot.sendMessage(msg.chat.id, definitions);
     });
 });
