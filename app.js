@@ -54,11 +54,22 @@ bot.onText(/\/기억 (\S+) (.+)/, (msg, match) => {
     .then(() => bot.sendMessage(msg.chat.id, SUCCESS_MSG.CREATE));
 });
 
-bot.onText(/\/알려/, (msg, match) => {
+bot.onText(/\/알려$/, (msg, match) => {
   Models.dictionary.find().count()
     .catch(err => bot.sendMessage(msg.chat.id, `${ERROR_MSG} ${err}`))
     .then(count => {
       const message = '저는 ' + count + '개의 단어를 알고있어요.' 
+      return bot.sendMessage(msg.chat.id, message);
+    });
+});
+
+bot.onText(/\/알려줘$/, (msg, match) => {
+  Models.dictionary.find()
+    .catch(err => bot.sendMessage(msg.chat.id, `${ERROR_MSG} ${err}`))
+    .then(docs => {
+      const keywords = docs.map(doc => doc.keyword);
+      keywords.join(', ');
+      const message = '저는 이런 단어들을 알고있어요.\n' + keywords; 
       return bot.sendMessage(msg.chat.id, message);
     });
 });
