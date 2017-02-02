@@ -24,6 +24,16 @@ const ERROR_MSG = {
   NOT_FOUND: '모르겠어요.',
 };
 
+Array.prototype.unique = function() {
+  var arr = [];
+  for(var i = 0; i < this.length; i++) {
+    if(!arr.contains(this[i])) {
+      arr.push(this[i]);
+    }
+  }
+  return arr; 
+}
+
 mongoose.Promise = bluebird;
 mongoose.connect(DB, { server: { socketOptions: { keepAlive: 1 } } });
 
@@ -55,19 +65,23 @@ bot.onText(/\/기억 (\S+) (.+)/, (msg, match) => {
 });
 
 bot.onText(/\/알려$/, (msg, match) => {
-  Models.dictionary.find().distinct('keyword')
+  Models.dictionary.find()
     .catch(err => bot.sendMessage(msg.chat.id, `${ERROR_MSG} ${err}`))
     .then(docs => {
-      const message = '저는 ' + docs.length + '개의 단어를 알고있어요.' 
+      let keywords = docs.map(doc => doc.keyword);
+      keywords = keywords.unique();
+      const message = '저는 ' + keywords.length + '개의 단어를 알고있어요.' 
       return bot.sendMessage(msg.chat.id, message);
     });
 });
 
 bot.onText(/\/알려줘$/, (msg, match) => {
-  Models.dictionary.find().distinct('keyword')
+  Models.dictionary.find()
     .catch(err => bot.sendMessage(msg.chat.id, `${ERROR_MSG} ${err}`))
     .then(docs => {
-      const keywords = keywords.join(', ');
+      let keywords = docs.map(doc => doc.keyword);
+      keywords = keywords.unique();
+      keywords = keywords.join(', ');
       const message = '저는 이런 단어들을 알고있어요.\n' + keywords; 
       return bot.sendMessage(msg.chat.id, message);
     });
