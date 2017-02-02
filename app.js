@@ -6,7 +6,7 @@ const Models = require('./models');
 
 dotenv.config();
 
-const TOKEN = process.env.NODE_ENV || 'telegram-bot-token';
+const TOKEN = process.env.TOKEN || 'telegram-bot-token';
 const URL = process.env.APP_URL || 'https://nosfe-ogame-bot.herokuapp.com:443';
 const DB = process.env.DB || 'database-host'
 const options = {
