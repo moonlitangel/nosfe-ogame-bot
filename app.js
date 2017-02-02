@@ -46,12 +46,16 @@ bot.onText(/\/입력 (\S+) (.+)/, (msg, match) => {
 bot.onText(/\/기억 (\S+) (.+)/, (msg, match) => {
   const keyword = match[1];
   const definition = match[2];
-  const document = new Models.dictionary({
-    keyword, definition
-  });
-  document.save()
+  Models.dictionary.findOneAndRemove({ keyword })
     .catch(err => bot.sendMessage(msg.chat.id, `${ERROR_MSG} ${err}`))
-    .then(() => bot.sendMessage(msg.chat.id, SUCCESS_MSG.CREATE));
+    .then(() => {
+      const document = new Models.dictionary({
+        keyword, definition
+      });
+      document.save()
+        .catch(err => bot.sendMessage(msg.chat.id, `${ERROR_MSG} ${err}`))
+        .then(() => bot.sendMessage(msg.chat.id, SUCCESS_MSG.CREATE));
+    });
 });
 
 bot.onText(/\/알려$/, (msg, match) => {
