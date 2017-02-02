@@ -68,7 +68,7 @@ bot.onText(/\/알려$/, (msg, match) => {
 });
 
 bot.onText(/\/알려줘$/, (msg, match) => {
-  Models.dictionary.find().distinct('keyword')
+  Models.dictionary.find()
     .catch(err => bot.sendMessage(msg.chat.id, `${ERROR_MSG} ${err}`))
     .then(docs => {
       const keywords = docs.map(doc => doc.keyword);
