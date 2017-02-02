@@ -46,16 +46,12 @@ bot.onText(/\/입력 (\S+) (.+)/, (msg, match) => {
 bot.onText(/\/기억 (\S+) (.+)/, (msg, match) => {
   const keyword = match[1];
   const definition = match[2];
-  Models.dictionary.findOneAndRemove({ keyword })
+  const document = new Models.dictionary({
+    keyword, definition
+  });
+  document.save()
     .catch(err => bot.sendMessage(msg.chat.id, `${ERROR_MSG} ${err}`))
-    .then(() => {
-      const document = new Models.dictionary({
-        keyword, definition
-      });
-      document.save()
-        .catch(err => bot.sendMessage(msg.chat.id, `${ERROR_MSG} ${err}`))
-        .then(() => bot.sendMessage(msg.chat.id, SUCCESS_MSG.CREATE));
-    });
+    .then(() => bot.sendMessage(msg.chat.id, SUCCESS_MSG.CREATE));
 });
 
 bot.onText(/\/알려$/, (msg, match) => {
@@ -94,8 +90,8 @@ bot.onText(/\/잊어 (.+)/, (msg, match) => {
   const keyword = match[1];
   Models.dictionary.find({ keyword }).remove()
     .catch(err => bot.sendMessage(msg.chat.id, `${ERROR_MSG} ${err}`))
-    .then((doc) => {
-      if (!doc) return bot.sendMessage(msg.chat.id, ERROR_MSG.NOT_FOUND);
+    .then((docs) => {
+      if (docs.length < 1) return bot.sendMessage(msg.chat.id, ERROR_MSG.NOT_FOUND);
       return bot.sendMessage(msg.chat.id, SUCCESS_MSG.DELETE);
     });
 });
