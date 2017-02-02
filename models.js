@@ -1,4 +1,4 @@
-const mongoose =require('mongoose');
+const mongoose = require('mongoose');
 
 
 const Dictionary = mongoose.Schema({
@@ -9,7 +9,7 @@ const Dictionary = mongoose.Schema({
   definition: {
     type: String,
     required: true,
-  }
+  },
 });
 
 const Schedule = mongoose.Schema({
@@ -28,8 +28,8 @@ const Schedule = mongoose.Schema({
   },
   chatId: {
     type: Number,
-  }
-})
+  },
+});
 
 module.exports.dictionary = mongoose.model('Dictionary', Dictionary);
 module.exports.schedule = mongoose.model('Schedule', Schedule);

@@ -9,11 +9,11 @@ dotenv.config();
 
 const TOKEN = process.env.TOKEN || 'telegram-bot-token';
 const URL = process.env.APP_URL || 'https://nosfe-ogame-bot.herokuapp.com:443';
-const DB = process.env.DB || 'database-host'
+const DB = process.env.DB || 'database-host';
 const options = {
   webHook: {
     port: process.env.PORT || 443,
-  }
+  },
 };
 const SUCCESS_MSG = {
   CREATE: '알겠어요!',
@@ -24,22 +24,22 @@ const ERROR_MSG = {
   NOT_FOUND: '모르겠어요.',
 };
 
-Array.prototype.contains = function(v) {
-    for(var i = 0; i < this.length; i++) {
-        if(this[i] === v) return true;
-    }
-    return false;
+Array.prototype.contains = (v) => {
+  for (let i = 0; i < this.length; i++) {
+    if (this[i] === v) return true;
+  }
+  return false;
 };
 
-Array.prototype.unique = function() {
-  var arr = [];
-  for(var i = 0; i < this.length; i++) {
-    if(!arr.contains(this[i])) {
+Array.prototype.unique = () => {
+  const arr = [];
+  for (let i = 0; i < this.length; i++) {
+    if (!arr.contains(this[i])) {
       arr.push(this[i]);
     }
   }
-  return arr; 
-}
+  return arr;
+};
 
 mongoose.Promise = bluebird;
 mongoose.connect(DB, { server: { socketOptions: { keepAlive: 1 } } });
@@ -64,7 +64,7 @@ bot.onText(/\/기억 (\S+) (.+)/, (msg, match) => {
   const keyword = match[1];
   const definition = match[2];
   const document = new Models.dictionary({
-    keyword, definition
+    keyword, definition,
   });
   document.save()
     .catch(err => bot.sendMessage(msg.chat.id, `${ERROR_MSG} ${err}`))
@@ -74,10 +74,10 @@ bot.onText(/\/기억 (\S+) (.+)/, (msg, match) => {
 bot.onText(/\/알려$/, (msg, match) => {
   Models.dictionary.find()
     .catch(err => bot.sendMessage(msg.chat.id, `${ERROR_MSG} ${err}`))
-    .then(docs => {
+    .then((docs) => {
       let keywords = docs.map(doc => doc.keyword);
       keywords = keywords.unique();
-      const message = '저는 ' + keywords.length + '개의 단어를 알고있어요.' 
+      const message = `저는 ' + ${keywords.length}개의 단어를 알고있어요.`;
       return bot.sendMessage(msg.chat.id, message);
     });
 });
@@ -85,11 +85,11 @@ bot.onText(/\/알려$/, (msg, match) => {
 bot.onText(/\/알려줘$/, (msg, match) => {
   Models.dictionary.find()
     .catch(err => bot.sendMessage(msg.chat.id, `${ERROR_MSG} ${err}`))
-    .then(docs => {
+    .then((docs) => {
       let keywords = docs.map(doc => doc.keyword);
       keywords = keywords.unique();
       keywords = keywords.join(', ');
-      const message = '저는 이런 단어들을 알고있어요.\n' + keywords; 
+      const message = `저는 이런 단어들을 알고있어요.\n ${keywords}`;
       return bot.sendMessage(msg.chat.id, message);
     });
 });
@@ -98,7 +98,7 @@ bot.onText(/\/알려 (.+)/, (msg, match) => {
   const keyword = match[1];
   Models.dictionary.find({ keyword })
     .catch(err => bot.sendMessage(msg.chat.id, `${ERROR_MSG} ${err}`))
-    .then(docs => {
+    .then((docs) => {
       if (docs.length < 1) return bot.sendMessage(msg.chat.id, ERROR_MSG.NOT_FOUND);
       let definitions = docs.map(doc => doc.definition);
       definitions = definitions.join(', ');
@@ -134,14 +134,17 @@ bot.onText(/\/알림 (\d+)(\S+) (.+)/, (msg, match) => {
       break;
     case '일':
       toMil = 1000 * 60 * 60 * 24;
+      break;
+    default:
+      break;
   }
 
   const offset = parseInt(num, 10) * toMil;
   const schedule = Date.now() + offset;
 
   const document = new Models.schedule({
-    schedule: schedule,
-    memo: memo,
+    schedule,
+    memo,
     messageId: msg.message_id,
     chatId: msg.chat.id,
     userId: msg.from.id,

@@ -1,4 +1,11 @@
 {
+  "extends": "airbnb-base",
+  "rules": {
+    "no-extend-native": "off",
+    "no-plusplus": "off",
+    "no-unused-vars": "off",
+    "new-cap": "off"
+  },
   "env": {
     "es6": true,
     "node": true
