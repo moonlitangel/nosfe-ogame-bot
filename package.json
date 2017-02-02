@@ -1,0 +1,23 @@
+{
+  "name": "nosfe-ogame-bot",
+  "version": "0.1.0",
+  "description": "Telegram bot for OGame",
+  "scripts": {
+    "start": "node app.js",
+    "monitor": "nodemon app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kimminsik-bernard/nosfe-ogame-bot"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "bluebird": "^3.4.7",
+    "mongoose": "^4.8.1",
+    "node-telegram-bot-api": "^0.26.0"
+  },
+  "engines": {
+    "node": ">=4.3.2"
+  }
+}
