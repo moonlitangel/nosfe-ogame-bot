@@ -83,7 +83,7 @@ bot.onText(/\/알려 (.+)/, (msg, match) => {
   Models.dictionary.find({ keyword })
     .catch(err => bot.sendMessage(msg.chat.id, `${ERROR_MSG} ${err}`))
     .then(docs => {
-      if (!docs) return bot.sendMessage(msg.chat.id, ERROR_MSG.NOT_FOUND);
+      if (docs.length < 1) return bot.sendMessage(msg.chat.id, ERROR_MSG.NOT_FOUND);
       let definitions = docs.map(doc => doc.definition);
       definitions = definitions.join(', ');
       return bot.sendMessage(msg.chat.id, definitions);
