@@ -1,6 +1,7 @@
 const TelegramBot = require('node-telegram-bot-api');
 const bluebird = require('bluebird');
 const mongoose = require('mongoose');
+const dotenv = require('dotenv');
 
 const Models = require('./models');
 
