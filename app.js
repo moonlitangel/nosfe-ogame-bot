@@ -89,7 +89,7 @@ bot.onText(/\/알려줘$/, (msg, match) => {
       let keywords = docs.map(doc => doc.keyword);
       keywords = keywords.unique();
       keywords = keywords.join(', ');
-      const message = `저는 이런 단어들을 알고있어요.\n ${keywords}`;
+      const message = `저는 이런 단어들을 알고있어요.\n${keywords}`;
       return bot.sendMessage(msg.chat.id, message);
     });
 });
