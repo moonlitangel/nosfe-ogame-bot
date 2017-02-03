@@ -189,7 +189,21 @@ function makeQuiz(chatId) {
     });
 }
 
-bot.onText(/\/퀴즈시작 (\d+)$/, (msg, match) => {
+bot.onText(/\/초성퀴즈$/, (msg, match) => {
+  Models.jaumQuiz.find()
+    .catch(err => bot.sendMessage(msg.chat.id, `${ERROR_MSG} ${err}`))
+    .then((docs) => {
+      let quizes = docs.map(doc => doc.quiz);
+      quizes = quizes.unique();
+      let categories = docs.map(doc => doc.category);
+      categories = categories.unique();
+      categories = categories.join(', ');
+      const message = `저는 ${quizes.length}개의 문제를 알고있어요.\n문제들의 영역은\n${categories}\n이에요.`;
+      return bot.sendMessage(msg.chat.id, message);
+    });
+});
+
+bot.onText(/\/초성퀴즈 시작 (\d+)$/, (msg, match) => {
   if (pending[msg.chat.id]) return bot.sendMessage(msg.chat.id, '대답을 기다리고 있어요!');
   round[msg.chat.id] = parseInt(match[1], 10);
   currentRound[msg.chat.id] = 0;
@@ -208,7 +222,7 @@ bot.onText(/(.*)/, (msg, match) => {
   }
 });
 
-bot.onText(/\/퀴즈추가 (.+) @(\S+)/, (msg, match) => {
+bot.onText(/\/초성퀴즈 추가 (.+) @(\S+)/, (msg, match) => {
   const quiz = match[1];
   const category = match[2];
   const document = new Models.jaumQuiz({
