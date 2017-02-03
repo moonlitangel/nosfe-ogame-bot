@@ -31,5 +31,18 @@ const Schedule = mongoose.Schema({
   },
 });
 
+const JaumQuiz = mongoose.Schema({
+  quiz: {
+    type: String,
+    require: true,
+  },
+  category: {
+    type: String,
+    require: true,
+  },
+});
+
 module.exports.dictionary = mongoose.model('Dictionary', Dictionary);
 module.exports.schedule = mongoose.model('Schedule', Schedule);
+module.exports.jaumQuiz = mongoose.model('JaumQuiz', JaumQuiz);
+

@@ -159,3 +159,62 @@ setInterval(() => {
   Models.schedule.findOneAndRemove({ schedule: { $lt: now } })
     .then(doc => bot.sendMessage(doc.chatId, `알림 시간이에요! ${doc.memo}`, { reply_to_message_id: doc.messageId }));
 }, 1000);
+
+function hangulChosung(str) {
+  const cho = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+  let result = '';
+  for (let i = 0; i < str.length; i++) {
+    const code = str.charCodeAt(i) - 44032;
+    if (code > -1 && code < 11172) result += cho[Math.floor(code / 588)];
+    else result += str[i];
+  }
+  return result;
+}
+
+const pending = {};
+const pendingQuiz = {};
+const round = {};
+const currentRound = {};
+
+function makeQuiz(chatId) {
+  currentRound[chatId] += 1;
+  pending[chatId] = true;
+  return Models.jaumQuiz.find()
+    .then((docs) => {
+      const list = docs.map(doc => doc.quiz);
+      const index = Math.floor((Math.random() * list.length));
+      pendingQuiz[chatId] = list[index];
+      const chosung = hangulChosung(pendingQuiz[chatId]);
+      bot.sendMessage(chatId, chosung);
+    });
+}
+
+bot.onText(/\/퀴즈시작 (\d+)$/, (msg, match) => {
+  if (pending[msg.chat.id]) return bot.sendMessage(msg.chat.id, '대답을 기다리고 있어요!');
+  round[msg.chat.id] = parseInt(match[1], 10);
+  currentRound[msg.chat.id] = 0;
+  return makeQuiz(msg.chat.id);
+});
+
+bot.onText(/(.*)/, (msg, match) => {
+  if (pending[msg.chat.id] && match[0] === pendingQuiz[msg.chat.id]) {
+    pending[msg.chat.id] = false;
+    bot.sendMessage(msg.chat.id, '정답이에요!', { reply_to_message_id: msg.message_id })
+      .then(() => {
+        if (round[msg.chat.id] === currentRound[msg.chat.id]) {
+          bot.sendMessage(msg.chat.id, '초성퀴즈가 끝났어요!');
+        } else makeQuiz(msg.chat.id);
+      });
+  }
+});
+
+bot.onText(/\/퀴즈추가 (.+) @(\S+)/, (msg, match) => {
+  const quiz = match[1];
+  const category = match[2];
+  const document = new Models.jaumQuiz({
+    quiz, category,
+  });
+  document.save()
+    .catch(err => bot.sendMessage(msg.chat.id, `${ERROR_MSG} ${err}`))
+    .then(() => bot.sendMessage(msg.chat.id, `초성퀴즈 "${quiz}"를 "${category}"카테고리에 추가했습니다.`));
+});
