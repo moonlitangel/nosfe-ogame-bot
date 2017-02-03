@@ -116,10 +116,10 @@ bot.onText(/\/잊어 (.+)/, (msg, match) => {
     });
 });
 
-bot.onText(/\/알림 (\d+)(\S+) (.+)/, (msg, match) => {
+bot.onText(/\/알림 (\d+)(초|분|시간|일)(.*)/, (msg, match) => {
   const num = match[1];
   const unit = match[2];
-  const memo = match[3];
+  const memo = match[3] || '';
 
   let toMil = 1000;
   switch (unit) {
@@ -151,11 +151,11 @@ bot.onText(/\/알림 (\d+)(\S+) (.+)/, (msg, match) => {
   });
   document.save()
     .catch(err => bot.sendMessage(msg.chat.id, ERROR_MSG))
-    .then(() => bot.sendMessage(msg.chat.id, SUCCESS_MSG.CREATE));
+    .then(() => bot.sendMessage(msg.chat.id, `${SUCCESS_MSG.CREATE} ${num}${unit}뒤에 알려드릴게요.`));
 });
 
 setInterval(() => {
   const now = Date.now();
   Models.schedule.findOneAndRemove({ schedule: { $lt: now } })
-    .then(doc => bot.sendMessage(doc.chatId, `알림 시간이에요! "${doc.memo}"`, { reply_to_message_id: doc.messageId }));
+    .then(doc => bot.sendMessage(doc.chatId, `알림 시간이에요! ${doc.memo}`, { reply_to_message_id: doc.messageId }));
 }, 1000);
