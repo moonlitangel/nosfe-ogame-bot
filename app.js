@@ -24,14 +24,14 @@ const ERROR_MSG = {
   NOT_FOUND: '모르겠어요.',
 };
 
-Array.prototype.contains = (v) => {
+Array.prototype.contains = function conatins(v) {
   for (let i = 0; i < this.length; i++) {
     if (this[i] === v) return true;
   }
   return false;
 };
 
-Array.prototype.unique = () => {
+Array.prototype.unique = function unique() {
   const arr = [];
   for (let i = 0; i < this.length; i++) {
     if (!arr.contains(this[i])) {
@@ -77,7 +77,7 @@ bot.onText(/\/알려$/, (msg, match) => {
     .then((docs) => {
       let keywords = docs.map(doc => doc.keyword);
       keywords = keywords.unique();
-      const message = `저는 ' + ${keywords.length}개의 단어를 알고있어요.`;
+      const message = `저는 ${keywords.length}개의 단어를 알고있어요.`;
       return bot.sendMessage(msg.chat.id, message);
     });
 });
