@@ -206,7 +206,7 @@ function makeQuiz(chatId) {
           bot.sendMessage(chatId, `어려운가요? 정답은 "${jqz[chatId].quiz}"였어요.\n다음 문제를 내드릴게요.`)
             .then(() => makeQuiz(chatId));
         }
-      }, 3000);
+      }, due);
       jqz[chatId].expireAt = Date.now() + due;
       const chosung = hangulChosung(jqz[chatId].quiz);
       return bot.sendMessage(chatId, `[${docs[index].category}] ${chosung}`)
