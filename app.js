@@ -24,7 +24,7 @@ const ERROR_MSG = {
   NOT_FOUND: '모르겠어요.',
 };
 
-Array.prototype.contains = function conatins(v) {
+Array.prototype.contains = function contains(v) {
   for (let i = 0; i < this.length; i++) {
     if (this[i] === v) return true;
   }
@@ -60,7 +60,7 @@ bot.onText(/\/후방주의/, (msg) => {
   bot.sendMessage(msg.chat.id, '.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n- 후방주의 -');
 });
 
-bot.onText(/\/입력 (\S+) (.+)/, (msg, match) => {
+bot.onText(/\/입력 (\S+) (.+)/, (msg) => {
   bot.sendMessage(msg.chat.id, '"/입력" 대신 "/기억"이라고 해주세요.');
 });
 
@@ -75,7 +75,7 @@ bot.onText(/\/기억 (\S+) (.+)/, (msg, match) => {
     .then(() => bot.sendMessage(msg.chat.id, SUCCESS_MSG.CREATE));
 });
 
-bot.onText(/\/알려$/, (msg, match) => {
+bot.onText(/\/알려$/, (msg) => {
   Models.dictionary.find()
     .catch(err => bot.sendMessage(msg.chat.id, `${ERROR_MSG} ${err}`))
     .then((docs) => {
@@ -86,7 +86,7 @@ bot.onText(/\/알려$/, (msg, match) => {
     });
 });
 
-bot.onText(/\/알려줘$/, (msg, match) => {
+bot.onText(/\/알려줘$/, (msg) => {
   Models.dictionary.find()
     .catch(err => bot.sendMessage(msg.chat.id, `${ERROR_MSG} ${err}`))
     .then((docs) => {
@@ -211,7 +211,7 @@ function makeQuiz(chatId) {
           const hint = chosung.replaceAt(hintIndex, jqz[chatId].quiz.substr(hintIndex, 1));
           bot.sendMessage(chatId, `어려운가요? 한 글자를 알려드릴게요.\n${hint}`);
         }
-      }, 1000 * 60 * 1);
+      }, 1000 * 60);
       setTimeout(() => {
         if (docs[index].quiz === jqz[chatId].quiz) {
           bot.sendMessage(chatId, `정말 어렵나보네요. 정답은 "${jqz[chatId].quiz}"였어요.\n다음 문제를 내드릴게요.`)
@@ -233,18 +233,18 @@ function countIn(arr, value, key) {
   return num;
 }
 
-bot.onText(/\/초성퀴즈$/, (msg, match) => {
+bot.onText(/\/초성퀴즈$/, (msg) => {
   Models.jaumQuiz.find()
     .catch(err => bot.sendMessage(msg.chat.id, `${ERROR_MSG} ${err}`))
     .then((docs) => {
-      let quizes = docs.map(doc => doc.quiz);
-      quizes = quizes.unique();
+      let quizzes = docs.map(doc => doc.quiz);
+      quizzes = quizzes.unique();
       let categories = docs.map(doc => doc.category);
       categories = categories.unique();
       let categoriesDetail = categories.map(cat => `${cat}: ${countIn(docs, cat, 'category')}개`);
       // categories = categories.join(', ');
       categoriesDetail = categoriesDetail.join('\n');
-      const message = `저는 ${categories.length}개의 영역에서 ${quizes.length}개의 문제를 알고있어요.\n-\n${categoriesDetail}`;
+      const message = `저는 ${categories.length}개의 영역에서 ${quizzes.length}개의 문제를 알고있어요.\n-\n${categoriesDetail}`;
       return bot.sendMessage(msg.chat.id, message);
     });
 });
@@ -290,7 +290,7 @@ bot.onText(/(.*)/, (msg, match) => {
   }
 });
 
-bot.onText(/\/초성퀴즈 힌트$/, (msg, match) => {
+bot.onText(/\/초성퀴즈 힌트$/, (msg) => {
   bot.sendMessage(msg.chat.id, '힌트는 퀴즈를 내고 나서 1분째에 한 번만 알려드려요.');
 });
 
@@ -320,7 +320,7 @@ bot.onText(/\/초성퀴즈 삭제 (.+) @(\S+)/, (msg, match) => {
     });
 });
 
-bot.onText(/\/초성퀴즈 중지$/, (msg, match) => {
+bot.onText(/\/초성퀴즈 중지$/, (msg) => {
   if (jqz[msg.chat.id]) {
     jqz[msg.chat.id] = null;
     return bot.sendMessage(msg.chat.id, '초성퀴즈를 강제로 끝냈어요.');
