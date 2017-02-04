@@ -286,7 +286,7 @@ bot.onText(/\/초성퀴즈 삭제 (.+) @(\S+)/, (msg, match) => {
     .then(() => bot.sendMessage(msg.chat.id, `초성퀴즈 "${quiz}"를 "${category}"영역에서 삭제했어요.`));
 });
 
-bot.onText(/\/초성퀴즈 중지 (.+) @(\S+)/, (msg, match) => {
+bot.onText(/\/초성퀴즈 중지$/, (msg, match) => {
   if (jqz[msg.chat.id]) {
     jqz[msg.chat.id] = null;
     bot.sendMessage(msg.chat.id, '초성퀴즈를 강제로 끝냈어요.');
