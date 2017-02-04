@@ -200,6 +200,14 @@ function makeQuiz(chatId) {
       }
       const index = Math.floor((Math.random() * docs.length));
       jqz[chatId].quiz = docs[index].quiz;
+      const due = (1000 * 60 * 3);
+      setTimeout(() => {
+        if (docs[index].quiz === jqz[chatId].quiz) {
+          bot.sendMessage(chatId, `어려운가요? 정답은 "${jqz[chatId].quiz}"였어요.\n다음 문제를 내드릴게요.`)
+            .then(() => makeQuiz(chatId));
+        }
+      }, 3000);
+      jqz[chatId].expireAt = Date.now() + due;
       const chosung = hangulChosung(jqz[chatId].quiz);
       return bot.sendMessage(chatId, `[${docs[index].category}] ${chosung}`)
         .then(() => {
