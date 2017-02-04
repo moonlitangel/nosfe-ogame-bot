@@ -8,7 +8,7 @@ const Models = require('./models');
 dotenv.config();
 
 const TOKEN = process.env.TOKEN || 'telegram-bot-token';
-const URL = process.env.APP_URL || 'https://nosfe-ogame-bot.herokuapp.com:443';
+const URL = process.env.APP_URL || 'https://nosfe-ogame-bot.azurewebsites.net:443';
 const DB = process.env.DB || 'database-host';
 const options = {
   webHook: {
@@ -39,6 +39,10 @@ Array.prototype.unique = function unique() {
     }
   }
   return arr;
+};
+
+String.prototype.replaceAt = function replaceAt(index, character) {
+  return this.substr(0, index) + character + this.substr(index + character.length);
 };
 
 mongoose.Promise = bluebird;
@@ -200,20 +204,33 @@ function makeQuiz(chatId) {
       }
       const index = Math.floor((Math.random() * docs.length));
       jqz[chatId].quiz = docs[index].quiz;
-      const due = (1000 * 60 * 3);
+      const chosung = hangulChosung(jqz[chatId].quiz);
       setTimeout(() => {
         if (docs[index].quiz === jqz[chatId].quiz) {
-          bot.sendMessage(chatId, `어려운가요? 정답은 "${jqz[chatId].quiz}"였어요.\n다음 문제를 내드릴게요.`)
+          const hintIndex = Math.floor((Math.random() * jqz[chatId].quiz.length));
+          const hint = chosung.replaceAt(hintIndex, jqz[chatId].quiz.substr(hintIndex, 1));
+          bot.sendMessage(chatId, `어려운가요? 한 글자를 알려드릴게요.\n${hint}`);
+        }
+      }, 1000 * 60 * 1);
+      setTimeout(() => {
+        if (docs[index].quiz === jqz[chatId].quiz) {
+          bot.sendMessage(chatId, `정말 어렵나보네요. 정답은 "${jqz[chatId].quiz}"였어요.\n다음 문제를 내드릴게요.`)
             .then(() => makeQuiz(chatId));
         }
-      }, due);
-      jqz[chatId].expireAt = Date.now() + due;
-      const chosung = hangulChosung(jqz[chatId].quiz);
+      }, 1000 * 60 * 3);
       return bot.sendMessage(chatId, `[${docs[index].category}] ${chosung}`)
         .then(() => {
           jqz[chatId].listen = true;
         });
     });
+}
+function countIn(arr, value, key) {
+  let num = 0;
+  for (let i = 0; i < arr.length; i++) {
+    const obj = arr[i];
+    if (obj[key] === value) num += 1;
+  }
+  return num;
 }
 
 bot.onText(/\/초성퀴즈$/, (msg, match) => {
@@ -224,8 +241,10 @@ bot.onText(/\/초성퀴즈$/, (msg, match) => {
       quizes = quizes.unique();
       let categories = docs.map(doc => doc.category);
       categories = categories.unique();
-      categories = categories.join(', ');
-      const message = `저는 ${quizes.length}개의 문제를 알고있어요.\n문제들의 영역은 ${categories}이에요.`;
+      let categoriesDetail = categories.map(cat => `${cat}: ${countIn(docs, cat, 'category')}개`);
+      // categories = categories.join(', ');
+      categoriesDetail = categoriesDetail.join('\n');
+      const message = `저는 ${categories.length}개의 영역에서 ${quizes.length}개의 문제를 알고있어요.\n-\n${categoriesDetail}`;
       return bot.sendMessage(msg.chat.id, message);
     });
 });
@@ -271,12 +290,16 @@ bot.onText(/(.*)/, (msg, match) => {
   }
 });
 
+bot.onText(/\/초성퀴즈 힌트$/, (msg, match) => {
+  bot.sendMessage(msg.chat.id, '힌트는 퀴즈를 내고 나서 1분째에 한 번만 알려드려요.');
+});
+
 bot.onText(/\/초성퀴즈 추가 (.+) @(\S+)/, (msg, match) => {
   const quiz = match[1];
   const category = match[2];
   return Models.jaumQuiz.findOneAndRemove({ quiz, category })
     .then((doc) => {
-      if (doc) return bot.sendMessage(msg.chat.id, '이미 있는걸요?');
+      if (doc) return bot.sendMessage(msg.chat.id, '그 문제는 이미 있는걸요?');
       const document = new Models.jaumQuiz({
         quiz, category,
       });
@@ -291,12 +314,16 @@ bot.onText(/\/초성퀴즈 삭제 (.+) @(\S+)/, (msg, match) => {
   const category = match[2];
   Models.jaumQuiz.findOneAndRemove({ quiz, category })
     .catch(err => bot.sendMessage(msg.chat.id, `${ERROR_MSG} ${err}`))
-    .then(() => bot.sendMessage(msg.chat.id, `초성퀴즈 "${quiz}"를 "${category}"영역에서 삭제했어요.`));
+    .then((doc) => {
+      if (!doc) return bot.sendMessage(msg.chat.id, '그런 문제가 없는걸요?');
+      return bot.sendMessage(msg.chat.id, `초성퀴즈 "${quiz}"를 "${category}"영역에서 삭제했어요.`);
+    });
 });
 
 bot.onText(/\/초성퀴즈 중지$/, (msg, match) => {
   if (jqz[msg.chat.id]) {
     jqz[msg.chat.id] = null;
-    bot.sendMessage(msg.chat.id, '초성퀴즈를 강제로 끝냈어요.');
+    return bot.sendMessage(msg.chat.id, '초성퀴즈를 강제로 끝냈어요.');
   }
+  return bot.sendMessage(msg.chat.id, '퀴즈를 내고 있지 않은걸요?');
 });
