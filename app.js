@@ -116,6 +116,9 @@ bot.onText(/\/잊어 (.+)/, (msg, match) => {
     });
 });
 
+const schedules = [];
+Models.schedule.find().then(docs => docs.map(doc => schedules.push(doc)));
+
 bot.onText(/\/알림 (\d+)(초|분|시간|일)(.*)/, (msg, match) => {
   const num = match[1];
   const unit = match[2];
@@ -151,13 +154,23 @@ bot.onText(/\/알림 (\d+)(초|분|시간|일)(.*)/, (msg, match) => {
   });
   document.save()
     .catch(err => bot.sendMessage(msg.chat.id, ERROR_MSG))
-    .then(() => bot.sendMessage(msg.chat.id, `${SUCCESS_MSG.CREATE} ${num}${unit}뒤에 알려드릴게요.`));
+    .then((doc) => {
+      schedules.push(doc);
+      return bot.sendMessage(msg.chat.id, `${SUCCESS_MSG.CREATE} ${num}${unit}뒤에 알려드릴게요.`);
+    });
 });
 
 setInterval(() => {
   const now = Date.now();
-  Models.schedule.findOneAndRemove({ schedule: { $lt: now } })
-    .then(doc => bot.sendMessage(doc.chatId, `알림 시간이에요! ${doc.memo}`, { reply_to_message_id: doc.messageId }));
+  schedules.map((doc) => {
+    if (doc.schedule < now) {
+      const index = schedules.map(_doc => _doc.messageId).indexOf(doc.messageId);
+      schedules.splice(index, 1);
+      bot.sendMessage(doc.chatId, `알림 시간이에요! ${doc.memo}`, { reply_to_message_id: doc.messageId });
+      Models.schedule.findOneAndRemove({ schedule: doc.schedule }).exec();
+    }
+    return true;
+  });
 }, 1000);
 
 function hangulChosung(str) {
@@ -171,21 +184,19 @@ function hangulChosung(str) {
   return result;
 }
 
-const pending = {};
-const pendingQuiz = {};
-const round = {};
-const currentRound = {};
+const jqz = {};
 
 function makeQuiz(chatId) {
-  currentRound[chatId] += 1;
-  pending[chatId] = true;
+  jqz[chatId].currentRound += 1;
   return Models.jaumQuiz.find()
     .then((docs) => {
-      const list = docs.map(doc => doc.quiz);
-      const index = Math.floor((Math.random() * list.length));
-      pendingQuiz[chatId] = list[index];
-      const chosung = hangulChosung(pendingQuiz[chatId]);
-      bot.sendMessage(chatId, chosung);
+      const index = Math.floor((Math.random() * docs.length));
+      jqz[chatId].quiz = docs[index].quiz;
+      const chosung = hangulChosung(jqz[chatId].quiz);
+      bot.sendMessage(chatId, `[${docs[index].category}] ${chosung}`)
+        .then(() => {
+          jqz[chatId].listen = true;
+        });
     });
 }
 
@@ -198,25 +209,45 @@ bot.onText(/\/초성퀴즈$/, (msg, match) => {
       let categories = docs.map(doc => doc.category);
       categories = categories.unique();
       categories = categories.join(', ');
-      const message = `저는 ${quizes.length}개의 문제를 알고있어요.\n문제들의 영역은\n${categories}\n이에요.`;
+      const message = `저는 ${quizes.length}개의 문제를 알고있어요.\n문제들의 영역은 ${categories}이에요.`;
       return bot.sendMessage(msg.chat.id, message);
     });
 });
 
 bot.onText(/\/초성퀴즈 시작 (\d+)$/, (msg, match) => {
-  if (pending[msg.chat.id]) return bot.sendMessage(msg.chat.id, '대답을 기다리고 있어요!');
-  round[msg.chat.id] = parseInt(match[1], 10);
-  currentRound[msg.chat.id] = 0;
+  if (jqz[msg.chat.id]) return bot.sendMessage(msg.chat.id, '대답을 기다리고 있어요!');
+  jqz[msg.chat.id] = {
+    round: parseInt(match[1], 10),
+    currentRound: 0,
+    scores: [],
+    quiz: '',
+    listen: false,
+  };
   return makeQuiz(msg.chat.id);
 });
 
 bot.onText(/(.*)/, (msg, match) => {
-  if (pending[msg.chat.id] && match[0] === pendingQuiz[msg.chat.id]) {
-    pending[msg.chat.id] = false;
+  if (jqz[msg.chat.id] && jqz[msg.chat.id].listen && match[1] === jqz[msg.chat.id].quiz) {
+    jqz[msg.chat.id].listen = false;
+    jqz[msg.chat.id].scores.push(msg.from);
     bot.sendMessage(msg.chat.id, '정답이에요!', { reply_to_message_id: msg.message_id })
       .then(() => {
-        if (round[msg.chat.id] === currentRound[msg.chat.id]) {
-          bot.sendMessage(msg.chat.id, '초성퀴즈가 끝났어요!');
+        if (jqz[msg.chat.id].round === jqz[msg.chat.id].currentRound) {
+          const count = {};
+          for (let i = 0; i < jqz[msg.chat.id].scores.length; i++) {
+            const name = jqz[msg.chat.id].scores[i].first_name;
+            count[name] = count[name] ? count[name] + 1 : 1;
+          }
+
+          const counts = Object.keys(count).map(key => ({ firstName: key, count: count[key] }));
+          counts.sort((a, b) => b.count - a.count);
+
+          let result = [];
+          counts.map(scorer => result.push(`${scorer.firstName} : ${scorer.count}점`));
+          result = result.join('\n');
+
+          bot.sendMessage(msg.chat.id, `초성퀴즈가 끝났어요!\n${result}`);
+          jqz[msg.chat.id] = null;
         } else makeQuiz(msg.chat.id);
       });
   }
@@ -230,5 +261,13 @@ bot.onText(/\/초성퀴즈 추가 (.+) @(\S+)/, (msg, match) => {
   });
   document.save()
     .catch(err => bot.sendMessage(msg.chat.id, `${ERROR_MSG} ${err}`))
-    .then(() => bot.sendMessage(msg.chat.id, `초성퀴즈 "${quiz}"를 "${category}"카테고리에 추가했습니다.`));
+    .then(() => bot.sendMessage(msg.chat.id, `초성퀴즈 "${quiz}"를 "${category}"영역에 추가했어요.`));
+});
+
+bot.onText(/\/초성퀴즈 삭제 (.+) @(\S+)/, (msg, match) => {
+  const quiz = match[1];
+  const category = match[2];
+  Models.jaumQuiz.findOneAndRemove({ quiz, category })
+    .catch(err => bot.sendMessage(msg.chat.id, `${ERROR_MSG} ${err}`))
+    .then(() => bot.sendMessage(msg.chat.id, `초성퀴즈 "${quiz}"를 "${category}"영역에서 삭제했어요.`));
 });
