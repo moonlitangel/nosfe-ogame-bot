@@ -56,6 +56,13 @@ bot.onText(/안녕, 오겜봇/, (msg) => {
   bot.sendMessage(msg.chat.id, '안녕하세요!');
 });
 
+bot.onText(/\/help/, (msg) => {
+  bot.sendMessage(msg.chat.id, `
+    노페에 의한, 노페를 위한, 노페의 텔레그램 봇이에요.\
+    \n제가 할수 있는 일이 궁금하시다면 [코드 저장소](https://github.com/kimminsik-bernard/nosfe-ogame-bot)를 방문해주세요.
+  `, { parse_mode: 'Markdown' });
+});
+
 bot.onText(/\/후방주의/, (msg) => {
   bot.sendMessage(msg.chat.id, '.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n- 후방주의 -');
 });
@@ -188,6 +195,26 @@ function hangulChosung(str) {
   return result;
 }
 
+function reverseString(str) {
+  return (str === '') ? '' : reverseString(str.substr(1)) + str.charAt(0);
+}
+
+function makeHint(str, num = 1) {
+  const cho = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
+  let result = '';
+  let count = 0;
+  const index = Math.floor((Math.random() * str.length));
+  for (let i = str.length - 1; i >= 0; i--) {
+    const code = str.charCodeAt(i) - 44032;
+    if (count < num && i <= index && code > -1 && code < 11172) {
+      count += 1;
+      result += str[i];
+    } else if (code > -1 && code < 11172) result += cho[Math.floor(code / 588)];
+    else result += str[i];
+  }
+  return reverseString(result);
+}
+
 const jqz = {};
 
 function makeQuiz(chatId) {
@@ -207,14 +234,13 @@ function makeQuiz(chatId) {
       const chosung = hangulChosung(jqz[chatId].quiz);
       setTimeout(() => {
         if (docs[index].quiz === jqz[chatId].quiz) {
-          const hintIndex = Math.floor((Math.random() * jqz[chatId].quiz.length));
-          const hint = chosung.replaceAt(hintIndex, jqz[chatId].quiz.substr(hintIndex, 1));
+          const hint = makeHint(jqz[chatId].quiz);
           bot.sendMessage(chatId, `어려운가요? 한 글자를 알려드릴게요.\n${hint}`);
         }
       }, 1000 * 60);
       setTimeout(() => {
         if (docs[index].quiz === jqz[chatId].quiz) {
-          bot.sendMessage(chatId, `정말 어렵나보네요. 정답은 "${jqz[chatId].quiz}"였어요.\n다음 문제를 내드릴게요.`)
+          bot.sendMessage(chatId, `정말 어려운가봐요. 정답은 "${jqz[chatId].quiz}"였어요.\n다음 문제를 내드릴게요.`)
             .then(() => makeQuiz(chatId));
         }
       }, 1000 * 60 * 3);
@@ -320,7 +346,7 @@ bot.onText(/\/초성퀴즈 삭제 (.+) @(\S+)/, (msg, match) => {
     });
 });
 
-bot.onText(/\/초성퀴즈 중지$/, (msg) => {
+bot.onText(/\/초성퀴즈 중단$/, (msg) => {
   if (jqz[msg.chat.id]) {
     jqz[msg.chat.id] = null;
     return bot.sendMessage(msg.chat.id, '초성퀴즈를 강제로 끝냈어요.');
