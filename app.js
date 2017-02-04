@@ -188,12 +188,20 @@ const jqz = {};
 
 function makeQuiz(chatId) {
   jqz[chatId].currentRound += 1;
-  return Models.jaumQuiz.find()
+  let query = Models.jaumQuiz.find();
+  if (jqz[chatId].category) {
+    query = Models.jaumQuiz.find({ category: jqz[chatId].category });
+  }
+  return query
     .then((docs) => {
+      if (docs.length < 1) {
+        return bot.sendMessage(chatId, `${jqz[chatId].category} 영역에서 알고있는 문제가 없어요!`)
+          .then(() => { jqz[chatId] = null; });
+      }
       const index = Math.floor((Math.random() * docs.length));
       jqz[chatId].quiz = docs[index].quiz;
       const chosung = hangulChosung(jqz[chatId].quiz);
-      bot.sendMessage(chatId, `[${docs[index].category}] ${chosung}`)
+      return bot.sendMessage(chatId, `[${docs[index].category}] ${chosung}`)
         .then(() => {
           jqz[chatId].listen = true;
         });
@@ -214,14 +222,16 @@ bot.onText(/\/초성퀴즈$/, (msg, match) => {
     });
 });
 
-bot.onText(/\/초성퀴즈 시작 (\d+)$/, (msg, match) => {
+bot.onText(/\/초성퀴즈 시작 (\d+)(.*)$/, (msg, match) => {
   if (jqz[msg.chat.id]) return bot.sendMessage(msg.chat.id, '대답을 기다리고 있어요!');
+  const category = match[2] ? match[2].replace(' ', '') : null;
   jqz[msg.chat.id] = {
     round: parseInt(match[1], 10),
     currentRound: 0,
     scores: [],
     quiz: '',
     listen: false,
+    category,
   };
   return makeQuiz(msg.chat.id);
 });
@@ -256,12 +266,16 @@ bot.onText(/(.*)/, (msg, match) => {
 bot.onText(/\/초성퀴즈 추가 (.+) @(\S+)/, (msg, match) => {
   const quiz = match[1];
   const category = match[2];
-  const document = new Models.jaumQuiz({
-    quiz, category,
-  });
-  document.save()
-    .catch(err => bot.sendMessage(msg.chat.id, `${ERROR_MSG} ${err}`))
-    .then(() => bot.sendMessage(msg.chat.id, `초성퀴즈 "${quiz}"를 "${category}"영역에 추가했어요.`));
+  return Models.jaumQuiz.findOneAndRemove({ quiz, category })
+    .then((doc) => {
+      if (doc) return bot.sendMessage(msg.chat.id, '이미 있는걸요?');
+      const document = new Models.jaumQuiz({
+        quiz, category,
+      });
+      return document.save()
+        .catch(err => bot.sendMessage(msg.chat.id, `${ERROR_MSG} ${err}`))
+        .then(() => bot.sendMessage(msg.chat.id, `초성퀴즈 "${quiz}"를 "${category}"영역에 추가했어요.`));
+    });
 });
 
 bot.onText(/\/초성퀴즈 삭제 (.+) @(\S+)/, (msg, match) => {
