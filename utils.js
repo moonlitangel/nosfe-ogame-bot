@@ -1,3 +1,8 @@
+const _ = require('lodash');
+
+const assets = require('./assets');
+
+
 function contains(v) {
   for (let i = 0; i < this.length; i++) {
     if (this[i] === v) return true;
@@ -55,4 +60,15 @@ function countIn(arr, value, key) {
   return num;
 }
 
-module.exports = { contains, unique, hangulChosung, reverseString, makeHint, countIn };
+function makeTitleName(data) {
+  const titles = assets.titleNames;
+  let title;
+  _.forEach(titles, (value, key) => {
+    if (data > key) title = value;
+  });
+  return title;
+}
+
+module.exports = {
+  contains, unique, hangulChosung, reverseString, makeHint, countIn, makeTitleName,
+};

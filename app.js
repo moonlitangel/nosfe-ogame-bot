@@ -408,7 +408,7 @@ bot.onText(/(.*)/, (msg, match) => {
         Promise.all(queries).then((array) => {
           array.sort((a, b) => b.score - a.score);
           let result = [];
-          array.map(player => result.push(`${player.firstName}(${player.totalScore}) : ${player.score}점`));
+          array.map(player => result.push(`${utils.makeTitleName(player.totalScore)}_${player.firstName}: ${player.score}점`));
           result = result.join('\n');
           bot.sendMessage(msg.chat.id, `초성퀴즈가 끝났어요!\n${result}`);
         });
