@@ -13,8 +13,10 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@google-cloud/translate": "^0.7.0",
     "bluebird": "^3.4.7",
     "dotenv": "^4.0.0",
+    "lodash": "^4.17.4",
     "mongoose": "^4.8.1",
     "node-telegram-bot-api": "^0.26.0"
   },

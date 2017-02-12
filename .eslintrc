@@ -4,7 +4,8 @@
     "no-extend-native": "off",
     "no-plusplus": "off",
     "no-unused-vars": "off",
-    "new-cap": "off"
+    "new-cap": "off",
+    "no-param-reassign": "off"
   },
   "env": {
     "es6": true,

@@ -42,7 +42,22 @@ const JaumQuiz = mongoose.Schema({
   },
 });
 
+const JaumQuizPlayer = mongoose.Schema({
+  userId: {
+    type: Number,
+    require: true,
+  },
+  chatId: {
+    type: Number,
+    require: true,
+  },
+  scores: {
+    type: Object,
+  },
+});
+
 module.exports.dictionary = mongoose.model('Dictionary', Dictionary);
 module.exports.schedule = mongoose.model('Schedule', Schedule);
 module.exports.jaumQuiz = mongoose.model('JaumQuiz', JaumQuiz);
+module.exports.jaumQuizPlayer = mongoose.model('JaumQuizPlayer', JaumQuizPlayer);
 
