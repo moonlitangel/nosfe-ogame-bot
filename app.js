@@ -248,7 +248,7 @@ function makeQuiz(chatId) {
       const chosung = utils.hangulChosung(jqz[chatId].quiz);
 
       setTimeout(() => {
-        if (jqz[chatId].quiz && doc.quiz === jqz[chatId].quiz && jqz[chatId].hintAt < Date.now()) {
+        if (jqz[chatId] && doc.quiz === jqz[chatId].quiz && jqz[chatId].hintAt < Date.now()) {
           const hint = utils.makeHint(jqz[chatId].quiz);
           jqz[chatId].hintAt = Date.now() + (1000 * 30);
           bot.sendMessage(chatId, `어려운가요? 한 글자를 알려드릴게요.\n${hint}`);
@@ -256,7 +256,7 @@ function makeQuiz(chatId) {
       }, 1000 * 60);
 
       setTimeout(() => {
-        if (jqz[chatId].quiz && doc.quiz === jqz[chatId].quiz) {
+        if (jqz[chatId] && doc.quiz === jqz[chatId].quiz) {
           bot.sendMessage(chatId, `정말 어려운가봐요. 정답은 "${jqz[chatId].quiz}"였어요.\n다음 문제를 내드릴게요.`)
             .then(() => makeQuiz(chatId));
         }
