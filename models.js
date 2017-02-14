@@ -47,6 +47,9 @@ const JaumQuizPlayer = mongoose.Schema({
     type: Number,
     require: true,
   },
+  firstName: {
+    type: String,
+  },
   chatId: {
     type: Number,
     require: true,

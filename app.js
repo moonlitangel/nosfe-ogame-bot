@@ -350,6 +350,23 @@ bot.onText(/^\/초성퀴즈 중단$/, (msg) => {
   return bot.sendMessage(msg.chat.id, '퀴즈를 내고 있지 않은걸요?');
 });
 
+bot.onText(/^\/초성퀴즈 랭킹$/, (msg) => {
+  return Models.jaumQuizPlayer.find({ chatId: msg.chat.id })
+    .then((docs) => {
+      const players = [];
+      _.forEach(docs, (player) => {
+        let totalScore = 0;
+        _.forEach(player.scores, (value) => { totalScore += value; });
+        players.push({ player, totalScore });
+      });
+      players.sort((a, b) => b.totalScore - a.totalScore);
+      let result = [];
+      players.map(player => result.push(`${player.player.firstName}: 총 ${player.totalScore}점`));
+      result = result.join('\n');
+      return bot.sendMessage(msg.chat.id, `초성퀴즈 랭킹이에요\n${result}`);
+    });
+});
+
 bot.onText(/(.*)/, (msg, match) => {
   if (jqz[msg.chat.id] && jqz[msg.chat.id].listen && match[1] === jqz[msg.chat.id].quiz) {
     jqz[msg.chat.id].listen = false;
@@ -361,15 +378,17 @@ bot.onText(/(.*)/, (msg, match) => {
         if (!player) {
           const newPlayer = new Models.jaumQuizPlayer({
             userId: msg.from.id,
+            firstName: msg.from.first_name,
             chatId: msg.chat.id,
             scores: { [quizCategory]: point },
           });
           newPlayer.save();
         } else {
           const scores = player.scores;
+          const firstName = msg.from.first_name;
           if (scores[quizCategory]) scores[quizCategory] += point;
           else scores[quizCategory] = point;
-          player.update({ scores }).exec();
+          player.update({ scores, firstName }).exec();
         }
       });
 
