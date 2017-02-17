@@ -367,6 +367,22 @@ bot.onText(/^\/초성퀴즈 랭킹$/, (msg) => {
     });
 });
 
+bot.onText(/^\/초성퀴즈 점수 (.+)$/, (msg, match) => {
+  const firstName = match[1];
+  return Models.jaumQuizPlayer.findOne({ chatId: msg.chat.id, firstName })
+    .then((doc) => {
+      const scores = [];
+      _.forEach(doc.scores, (score, category) => {
+        scores.push({ category, score });
+      });
+      scores.sort((a, b) => b.score - a.score);
+      let result = [];
+      scores.map(score => result.push(`${score.category}: ${score.score}점`));
+      result = result.join('\n');
+      return bot.sendMessage(msg.chat.id, `${firstName}님의 초성퀴즈 점수 기록이에요.\n${result}`);
+    });
+});
+
 bot.onText(/(.*)/, (msg, match) => {
   if (jqz[msg.chat.id] && jqz[msg.chat.id].listen && match[1] === jqz[msg.chat.id].quiz) {
     jqz[msg.chat.id].listen = false;

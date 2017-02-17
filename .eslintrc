@@ -5,7 +5,8 @@
     "no-plusplus": "off",
     "no-unused-vars": "off",
     "new-cap": "off",
-    "no-param-reassign": "off"
+    "no-param-reassign": "off",
+    "arrow-body-style": "off"
   },
   "env": {
     "es6": true,
