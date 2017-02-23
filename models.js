@@ -59,8 +59,18 @@ const JaumQuizPlayer = mongoose.Schema({
   },
 });
 
+const ChatToken = mongoose.Schema({
+  chatId: {
+    type: Number,
+    require: true,
+  },
+  token: {
+    type: String,
+  },
+});
+
 module.exports.dictionary = mongoose.model('Dictionary', Dictionary);
 module.exports.schedule = mongoose.model('Schedule', Schedule);
 module.exports.jaumQuiz = mongoose.model('JaumQuiz', JaumQuiz);
 module.exports.jaumQuizPlayer = mongoose.model('JaumQuizPlayer', JaumQuizPlayer);
-
+module.exports.chatToken = mongoose.model('ChatToken', ChatToken);

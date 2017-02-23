@@ -9,9 +9,12 @@ const compression = require('compression');  // gzip 압축 미들웨어
 const cors = require('cors');  // cors 미들웨어
 const helmet = require('helmet');  // http header 공격 방어 미들웨어
 const bodyParser = require('body-parser');  // http 리퀘스트 미들웨어
+const randomstring = require('randomstring');
 
 const Models = require('./models');  // mongoose 모델
 const utils = require('./utils');  // 커스텀 유틸리티 함수
+
+
 /*
 * 환경설정
 */
@@ -46,8 +49,12 @@ app.post(`/bot${TOKEN}`, (req, res) => {
 // 메시지 api
 app.post('/messages/:chatId', (req, res) => {
   const chatId = parseInt(req.params.chatId, 10);
-  bot.sendMessage(chatId, req.body.message)
-    .then(() => res.send('Message on a way!'));
+  Models.chatToken.findOne({ chatId })
+    .then((chatToken) => {
+      if (!chatToken || chatToken.token !== req.body.token) return res.send(401, 'Invalid token');
+      return bot.sendMessage(chatId, req.body.message)
+        .then(() => res.send('Message on a way!'));
+    });
 });
 
 // express 서버 시작
@@ -105,6 +112,25 @@ bot.onText(/^\/주사위 (\d+)$/, (msg, match) => {
   const number = match[1];
   const random = Math.floor(Math.random() * (parseInt(number, 10) - 1)) + 1;
   return bot.sendMessage(msg.chat.id, `[${random}]이 나왔어요.`);
+});
+
+
+/*
+* 챗방 토큰
+*/
+
+bot.onText(/^\/토큰 발급$/, (msg, match) => {
+  const chatId = msg.chat.id;
+  const token = randomstring.generate(7);
+  Models.chatToken.findOne({ chatId })
+    .then((chatToken) => {
+      if (!chatToken) {
+        const newToken = new Models.chatToken({ chatId, token });
+        return newToken.save();
+      }
+      return chatToken.update({ chatId, token }).exec();
+    })
+    .then(() => bot.sendMessage(msg.chat.id, `이 채팅방의 토큰은 "${token}"이에요.`));
 });
 
 

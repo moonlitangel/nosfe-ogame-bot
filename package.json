@@ -23,7 +23,9 @@
     "helmet": "^3.4.0",
     "lodash": "^4.17.4",
     "mongoose": "^4.8.1",
-    "node-telegram-bot-api": "^0.26.0"
+    "node-telegram-bot-api": "^0.26.0",
+    "npm": "^4.2.0",
+    "randomstring": "^1.1.5"
   },
   "devDependencies": {
     "eslint": "^3.13.0",
