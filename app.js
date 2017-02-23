@@ -4,10 +4,14 @@ const mongoose = require('mongoose');  // 몽고DB 오브젝트 모델링
 const dotenv = require('dotenv');  // 환경변수 설정
 const _ = require('lodash');  // 자바스크립트 유틸리티
 
+const express = require('express');  // http서버
+const compression = require('compression');  // gzip 압축 미들웨어
+const cors = require('cors');  // cors 미들웨어
+const helmet = require('helmet');  // http header 공격 방어 미들웨어
+const bodyParser = require('body-parser');  // http 리퀘스트 미들웨어
+
 const Models = require('./models');  // mongoose 모델
 const utils = require('./utils');  // 커스텀 유틸리티 함수
-
-
 /*
 * 환경설정
 */
@@ -20,15 +24,34 @@ const DB = process.env.DB || 'database-host';  // 디비 호스트
 const GOOGLE_PROJECT_ID = process.env.GOOGLE_PROJECT_ID;  // 구글 API 프로젝트 아이디
 const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;  // 구글 API 키
 
-// 봇 옵션; 웹훅
-const options = {
-  webHook: {
-    port: process.env.PORT || 443,
-  },
-};
 // 봇 생성
-const bot = new TelegramBot(TOKEN, options);
+const bot = new TelegramBot(TOKEN);
 bot.setWebHook(`${URL}/bot${TOKEN}`);
+
+// 서버 생성
+const app = express();
+
+app.use(compression());
+app.use(helmet());
+app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+// 웹훅 설정
+app.post(`/bot${TOKEN}`, (req, res) => {
+  bot.processUpdate(req.body);
+  res.sendStatus(200);
+});
+
+// 메시지 api
+app.post('/messages/:chatId', (req, res) => {
+  const chatId = parseInt(req.params.chatId, 10);
+  bot.sendMessage(chatId, req.body.message)
+    .then(() => res.send('Message on a way!'));
+});
+
+// express 서버 시작
+app.listen(process.env.PORT);
 
 // 구글 번역 api
 const googleTranslate = require('@google-cloud/translate')({
@@ -59,22 +82,26 @@ Array.prototype.unique = utils.unique;
 * 단순 명령어
 */
 
-bot.onText(/^안녕, 오겜봇/, (msg) => {
+bot.onText(/^안녕, 오겜봇$/, (msg) => {
   bot.sendMessage(msg.chat.id, '안녕하세요!');
 });
 
-bot.onText(/^\/help/, (msg) => {
+bot.onText(/^\/help$/, (msg) => {
   bot.sendMessage(msg.chat.id, `
     노페에 의한, 노페를 위한, 노페의 텔레그램 봇이에요.\
     \n제가 할수 있는 일이 궁금하시다면 [코드 저장소](https://github.com/kimminsik-bernard/nosfe-ogame-bot)를 방문해주세요.
   `, { parse_mode: 'Markdown' });
 });
 
-bot.onText(/^\/후방주의/, (msg) => {
+bot.onText(/^\/정보$/, (msg) => {
+  bot.sendMessage(msg.chat.id, `이 채팅방의 ID는 ${msg.chat.id}이고, \n${msg.from.first_name}님의 ID는 ${msg.from.id}이에요.`);
+});
+
+bot.onText(/^\/후방주의$/, (msg) => {
   bot.sendMessage(msg.chat.id, '.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n.\n- 후방주의 -');
 });
 
-bot.onText(/^\/주사위 (\d+)/, (msg, match) => {
+bot.onText(/^\/주사위 (\d+)$/, (msg, match) => {
   const number = match[1];
   const random = Math.floor(Math.random() * (parseInt(number, 10) - 1)) + 1;
   return bot.sendMessage(msg.chat.id, `[${random}]이 나왔어요.`);

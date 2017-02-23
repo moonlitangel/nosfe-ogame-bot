@@ -1,0 +1,6 @@
+POST https://nosfe-ogame-bot.azurewebsites.net/messages/-1001085678860 HTTP/1.1
+content-type: application/json
+
+{
+  "message": "추가 테스트"
+}
