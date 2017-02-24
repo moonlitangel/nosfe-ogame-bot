@@ -130,7 +130,18 @@ bot.onText(/^\/토큰 발급$/, (msg, match) => {
       }
       return chatToken.update({ chatId, token }).exec();
     })
-    .then(() => bot.sendMessage(msg.chat.id, `이 채팅방의 토큰은 "${token}"이에요.`));
+    .then(() => bot.sendMessage(msg.chat.id, `새로 발급한 이 채팅방의 토큰은 "${token}"이에요.`));
+});
+
+bot.onText(/^\/토큰$/, (msg, match) => {
+  const chatId = msg.chat.id;
+  Models.chatToken.findOne({ chatId })
+    .then((chatToken) => {
+      if (!chatToken) {
+        return bot.sendMessage(msg.chat.id, '토큰이 없는걸요?');
+      }
+      return bot.sendMessage(msg.chat.id, `이 채팅방의 토큰은 "${chatToken.token}"이에요.`);
+    });
 });
 
 
