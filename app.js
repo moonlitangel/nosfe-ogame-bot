@@ -52,6 +52,7 @@ app.post('/messages/:chatId', (req, res) => {
   Models.chatToken.findOne({ chatId })
     .then((chatToken) => {
       if (!chatToken || chatToken.token !== req.body.token) return res.send(401, 'Invalid token');
+      if (!chatToken.listening) return res.send(403, 'Message blocked');
       return bot.sendMessage(chatId, req.body.message)
         .then(() => res.send('Message on a way!'));
     });
@@ -116,7 +117,7 @@ bot.onText(/^\/주사위 (\d+)$/, (msg, match) => {
 
 
 /*
-* 챗방 토큰
+* 챗방
 */
 
 bot.onText(/^\/토큰 발급$/, (msg, match) => {
@@ -141,6 +142,24 @@ bot.onText(/^\/토큰$/, (msg, match) => {
         return bot.sendMessage(msg.chat.id, '토큰이 없는걸요?');
       }
       return bot.sendMessage(msg.chat.id, `이 채팅방의 토큰은 "${chatToken.token}"이에요.`);
+    });
+});
+
+bot.onText(/^\/메시지 (\S+)$/, (msg, match) => {
+  const chatId = msg.chat.id;
+  const flag = match[1];
+
+  let listening;
+  if (flag === '끄기') listening = false;
+  else if (flag === '켜기') listening = true;
+  else return bot.sendMessage(msg.chat.id, '메시지 알림을 \'메시지 켜기\'로 키거나 \'메시지 끄기\'로 끌 수 있어요.');
+
+  return Models.chatToken.findOneAndUpdate({ chatId }, { listening })
+    .then((chatToken) => {
+      if (!chatToken) {
+        return bot.sendMessage(msg.chat.id, '일단 토큰을 먼저 발급받아야해요.');
+      }
+      return bot.sendMessage(msg.chat.id, `메시지 알림을 ${listening ? '켰어요' : '껐어요'}`);
     });
 });
 

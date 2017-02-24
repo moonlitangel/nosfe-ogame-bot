@@ -67,6 +67,10 @@ const ChatToken = mongoose.Schema({
   token: {
     type: String,
   },
+  listening: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 module.exports.dictionary = mongoose.model('Dictionary', Dictionary);
