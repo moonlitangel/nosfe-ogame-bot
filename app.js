@@ -3,6 +3,7 @@ const bluebird = require('bluebird');  // Promise 구현체
 const mongoose = require('mongoose');  // 몽고DB 오브젝트 모델링
 const dotenv = require('dotenv');  // 환경변수 설정
 const _ = require('lodash');  // 자바스크립트 유틸리티
+const axios = require('axios');  // http 리퀘스트 클라이언트
 
 const express = require('express');  // http서버
 const compression = require('compression');  // gzip 압축 미들웨어
@@ -26,6 +27,7 @@ const URL = process.env.APP_URL || 'telegram-bot-url';  // 봇 호스트
 const DB = process.env.DB || 'database-host';  // 디비 호스트
 const GOOGLE_PROJECT_ID = process.env.GOOGLE_PROJECT_ID;  // 구글 API 프로젝트 아이디
 const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;  // 구글 API 키
+const WOLFRAM_ALPHA_APPID = process.env.WOLFRAM_ALPHA_APPID;  // 울프람 알파 API 앱ID
 
 // 봇 생성
 const bot = new TelegramBot(TOKEN);
@@ -336,7 +338,7 @@ bot.onText(/^\/갓글 (.+)/, (msg, match) => {
   };
 
   // 입력한 언어 감지
-  googleTranslate.detect(sentences)
+  return googleTranslate.detect(sentences)
     .then((data) => {
       // 입력값이 한국어가 아니면, 감지된 언어에서 한국어로 번역
       if (data[0].language !== 'ko') {
@@ -347,6 +349,39 @@ bot.onText(/^\/갓글 (.+)/, (msg, match) => {
       return googleTranslate.translate(sentences, translateOptions);
     })
     .then(data => bot.sendMessage(msg.chat.id, data[0]));
+});
+
+
+/*
+* 울프람 알파
+*/
+
+const wolframAlpha = axios.create({
+  baseURL: 'https://api.wolframalpha.com/v1',
+  responseType: 'arraybuffer',
+});
+
+bot.onText(/^\/갓프람 (.+)/, (msg, match) => {
+  const sentences = match[1];
+  const translateOptions = {
+    from: 'ko',
+    to: 'en',
+    model: 'nmt', // Neural Machine Translation 모델사용
+  };
+  return googleTranslate.translate(sentences, translateOptions)
+    .then((data) => {
+      bot.sendChatAction(msg.chat.id, 'upload_photo');
+      return wolframAlpha.get('/simple', {
+        params: {
+          i: data[0],
+          appid: WOLFRAM_ALPHA_APPID,
+        },
+      });
+    })
+    .catch(() => bot.sendMessage(msg.chat.id, '잘 모르겠어요'))
+    .then((response) => {
+      return bot.sendPhoto(msg.chat.id, response.data);
+    });
 });
 
 
