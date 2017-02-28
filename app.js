@@ -96,7 +96,7 @@ bot.onText(/^안녕, 오겜봇$/, (msg) => {
   bot.sendMessage(msg.chat.id, '안녕하세요!');
 });
 
-bot.onText(/^\/help$/, (msg) => {
+bot.onText(/^\/help/, (msg) => {
   bot.sendMessage(msg.chat.id, `
     노페에 의한, 노페를 위한, 노페의 텔레그램 봇이에요.\
     \n제가 할수 있는 일이 궁금하시다면 [코드 저장소](https://github.com/kimminsik-bernard/nosfe-ogame-bot)를 방문해주세요.
