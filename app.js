@@ -27,6 +27,7 @@ const URL = process.env.APP_URL || 'telegram-bot-url';  // 봇 호스트
 const DB = process.env.DB || 'database-host';  // 디비 호스트
 const GOOGLE_PROJECT_ID = process.env.GOOGLE_PROJECT_ID;  // 구글 API 프로젝트 아이디
 const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;  // 구글 API 키
+const GOOGLE_SEARCH_ID = process.env.GOOGLE_SEARCH_ID;  // 구글 검색엔진 ID
 const WOLFRAM_ALPHA_APPID = process.env.WOLFRAM_ALPHA_APPID;  // 울프람 알파 API 앱ID
 
 // 봇 생성
@@ -80,7 +81,7 @@ const SUCCESS_MSG = {
 };
 const ERROR_MSG = {
   UNKNOWN: '어라..?',
-  NOT_FOUND: '모르겠어요.',
+  NOT_FOUND: '잘 모르겠어요.',
 };
 
 // array에 커스텀 메소드 할당
@@ -353,6 +354,24 @@ bot.onText(/^\/갓글 (.+)/, (msg, match) => {
 
 
 /*
+* 구글 검색
+*/
+
+const googleSearch = axios.create({
+  baseURL: 'https://www.googleapis.com/customsearch/v1',
+});
+
+bot.onText(/^\/구글 (.+)/, (msg, match) => {
+  const query = match[1];
+  return googleSearch.get('/', { params: { key: GOOGLE_API_KEY, cx: GOOGLE_SEARCH_ID, q: query } })
+    .then((response) => {
+      if (!response.data) return bot.sendMessage(msg.chat.id, ERROR_MSG.NOT_FOUND);
+      return bot.sendMessage(msg.chat.id, response.data.items[0].link);
+    });
+});
+
+
+/*
 * 울프람 알파
 */
 
@@ -384,6 +403,20 @@ bot.onText(/^\/갓프람 (.+)/, (msg, match) => {
     });
 });
 
+bot.onText(/^\/울프람 (.+)/, (msg, match) => {
+  const sentences = match[1];
+  bot.sendChatAction(msg.chat.id, 'upload_photo');
+  wolframAlpha.get('/simple', {
+    params: {
+      i: sentences,
+      appid: WOLFRAM_ALPHA_APPID,
+    },
+  })
+  .catch(() => bot.sendMessage(msg.chat.id, '잘 모르겠어요'))
+  .then((response) => {
+    return bot.sendPhoto(msg.chat.id, response.data);
+  });
+});
 
 /*
 * 초성퀴즈
