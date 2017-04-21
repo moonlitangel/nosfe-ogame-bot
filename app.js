@@ -513,6 +513,7 @@ bot.onText(/^\/초성퀴즈 시작 (\d+)(.*)$/, (msg, match) => {
     quiz: '',
     listen: false,
     category,
+    hintIndex: [],
     hintAt: Date.now() + (1000 * 30),  // 힌트는 30초 이후 가능
   };
 
@@ -529,7 +530,7 @@ bot.onText(/^\/초성퀴즈 힌트$/, (msg) => {
   }
 
   // 퀴즈에서 힌트를 생성
-  const hint = utils.makeHint(jqz[msg.chat.id].quiz);
+  const hint = utils.makeHint(jqz[msg.chat.id].quiz, jqz[msg.chat.id].hintIndex);
   // 힌트 가능시간을 30초 이후로 재설정
   jqz[msg.chat.id].hintAt = Date.now() + (1000 * 30);
   return bot.sendMessage(msg.chat.id, `그러면 한 글자를 알려드릴게요.\n${hint}`);
@@ -656,6 +657,8 @@ bot.onText(/(.*)/, (msg, match) => {
 
     // 정답자를 퀴즈 현황에 기록
     jqz[msg.chat.id].scores.push(msg.from);
+    // 힌트 인덱스 기록을 초기화
+    jqz[msg.chat.id].hintIndex = []
     // 정답자를 알림
     bot.sendMessage(msg.chat.id, '정답이에요!', { reply_to_message_id: msg.message_id }).then(() => {
       // 마지막 퀴즈인 경우

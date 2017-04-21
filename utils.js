@@ -35,11 +35,13 @@ function reverseString(str) {
   return (str === '') ? '' : reverseString(str.substr(1)) + str.charAt(0);
 }
 
-function makeHint(str, num = 1) {
+function makeHint(str, indexList, num = 1) {
   const cho = ['ㄱ', 'ㄲ', 'ㄴ', 'ㄷ', 'ㄸ', 'ㄹ', 'ㅁ', 'ㅂ', 'ㅃ', 'ㅅ', 'ㅆ', 'ㅇ', 'ㅈ', 'ㅉ', 'ㅊ', 'ㅋ', 'ㅌ', 'ㅍ', 'ㅎ'];
   let result = '';
   let count = 0;
-  const index = Math.floor((Math.random() * str.length));
+  let index;
+  while( indexList.indexOf(index = Math.floor((Math.random() * str.length)) !== -1) );
+  indexList.push(index);
   for (let i = str.length - 1; i >= 0; i--) {
     const code = str.charCodeAt(i) - 44032;
     if (count < num && i <= index && code > -1 && code < 11172) {
