@@ -29,7 +29,7 @@ const GOOGLE_PROJECT_ID = process.env.GOOGLE_PROJECT_ID;  // 구글 API 프로�
 const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;  // 구글 API 키
 const GOOGLE_SEARCH_ID = process.env.GOOGLE_SEARCH_ID;  // 구글 검색엔진 ID
 const WOLFRAM_ALPHA_APPID = process.env.WOLFRAM_ALPHA_APPID;  // 울프람 알파 API 앱ID
-const HINT_TERM_TIME = 30 * 1000  // 힌트를 제공할 시간 간격값 (Default 30초)
+const HINT_TERM_TIME = 30 * 1000;  // 힌트를 제공할 시간 간격값 (Default 30초)
 
 // 봇 생성
 const bot = new TelegramBot(TOKEN);
@@ -458,8 +458,10 @@ function makeQuiz(chatId) {
 
       // 자동 힌트 스케줄링
       setTimeout(() => {
-        if (jqz[chatId] && doc.quiz === jqz[chatId].quiz && Date.now() - jqz[chatId].hintAt > HINT_TERM_TIME  ) {
-          const hint = utils.makeHint(jqz[chatId].quiz, jqz[msg.chat.id].hintIndex);
+        if (jqz[chatId]
+        && doc.quiz === jqz[chatId].quiz
+        && Date.now() - jqz[chatId].hintAt > HINT_TERM_TIME) {
+          const hint = utils.makeHint(jqz[chatId].quiz, jqz[chatId].hintIndex);
           jqz[chatId].hintAt = Date.now();
           bot.sendMessage(chatId, `어려운가요? 한 글자를 알려드릴게요.\n${hint}`);
         }
@@ -661,7 +663,7 @@ bot.onText(/(.*)/, (msg, match) => {
     // 정답자를 퀴즈 현황에 기록
     jqz[msg.chat.id].scores.push(msg.from);
     // 힌트 인덱스 기록을 초기화
-    jqz[msg.chat.id].hintIndex = []
+    jqz[msg.chat.id].hintIndex = [];
     // 힌트 가능시간을 초기화
     jqz[msg.chat.id].hintAt = Date.now();
     // 정답자를 알림

@@ -6,6 +6,7 @@
     "no-unused-vars": "off",
     "new-cap": "off",
     "no-param-reassign": "off",
+    "no-cond-assign": "off",
     "arrow-body-style": "off"
   },
   "env": {

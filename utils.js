@@ -40,7 +40,8 @@ function makeHint(str, indexList, num = 1) {
   let result = '';
   let count = 0;
   let index;
-  while( indexList.indexOf(index = Math.floor((Math.random() * str.length))) !== -1 && indexList.length !== str.length );
+  while (indexList.indexOf(index = Math.floor((Math.random() * str.length))) !== -1
+  && indexList.length !== str.length);
   indexList.push(index);
   for (let i = str.length - 1; i >= 0; i--) {
     const code = str.charCodeAt(i) - 44032;
