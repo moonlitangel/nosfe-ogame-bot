@@ -29,6 +29,7 @@ const GOOGLE_PROJECT_ID = process.env.GOOGLE_PROJECT_ID;  // 구글 API 프로�
 const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;  // 구글 API 키
 const GOOGLE_SEARCH_ID = process.env.GOOGLE_SEARCH_ID;  // 구글 검색엔진 ID
 const WOLFRAM_ALPHA_APPID = process.env.WOLFRAM_ALPHA_APPID;  // 울프람 알파 API 앱ID
+const HINT_TERM_TIME = 30 * 1000  // 힌트를 제공할 시간 간격값 (Default 30초)
 
 // 봇 생성
 const bot = new TelegramBot(TOKEN);
@@ -514,7 +515,7 @@ bot.onText(/^\/초성퀴즈 시작 (\d+)(.*)$/, (msg, match) => {
     listen: false,
     category,
     hintIndex: [],
-    hintAt: Date.now() + (1000 * 30),  // 힌트는 30초 이후 가능
+    hintAt: Date.now(),
   };
 
   // 퀴즈 시작
@@ -526,15 +527,15 @@ bot.onText(/^\/초성퀴즈 힌트$/, (msg) => {
   // 힌트를 내도 되는 시간인지 확인
   if (jqz[msg.chat.id]) {
     const distance = jqz[msg.chat.id].hintAt - Date.now();
-    if (distance > 0) {
-      return bot.sendMessage(msg.chat.id, `아직 힌트를 알려드리기엔 이른것 같아요. ${Math.floor(distance / 1000)}초를 더 기다려주세요.`);
+    if (distance > HINT_TERM_TIME) {
+      return bot.sendMessage(msg.chat.id, `아직 힌트를 알려드리기엔 이른것 같아요. ${Math.floor((HINT_TERM_TIME - distance) / 1000)}초를 더 기다려주세요.`);
     }
   } else return bot.sendMessage(msg.chat.id, '퀴즈를 내고있지 않은걸요?');
 
   // 퀴즈에서 힌트를 생성
   const hint = utils.makeHint(jqz[msg.chat.id].quiz, jqz[msg.chat.id].hintIndex);
-  // 힌트 가능시간을 30초 이후로 재설정
-  jqz[msg.chat.id].hintAt = Date.now() + (1000 * 30);
+  // 힌트 가능시간을 초기화
+  jqz[msg.chat.id].hintAt = Date.now();
   return bot.sendMessage(msg.chat.id, `그러면 한 글자를 알려드릴게요.\n${hint}`);
 });
 
@@ -661,6 +662,8 @@ bot.onText(/(.*)/, (msg, match) => {
     jqz[msg.chat.id].scores.push(msg.from);
     // 힌트 인덱스 기록을 초기화
     jqz[msg.chat.id].hintIndex = []
+    // 힌트 가능시간을 초기화
+    jqz[msg.chat.id].hintAt = Date.now();
     // 정답자를 알림
     bot.sendMessage(msg.chat.id, '정답이에요!', { reply_to_message_id: msg.message_id }).then(() => {
       // 마지막 퀴즈인 경우
