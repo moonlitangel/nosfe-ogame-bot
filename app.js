@@ -527,7 +527,7 @@ bot.onText(/^\/초성퀴즈 힌트$/, (msg) => {
   // 힌트를 내도 되는 시간인지 확인
   if (jqz[msg.chat.id]) {
     const distance = Date.now() - jqz[msg.chat.id].hintAt;
-    if (distance > HINT_TERM_TIME) {
+    if (distance < HINT_TERM_TIME) {
       return bot.sendMessage(msg.chat.id, `아직 힌트를 알려드리기엔 이른것 같아요. ${Math.floor((HINT_TERM_TIME - distance) / 1000)}초를 더 기다려주세요.`);
     }
   } else return bot.sendMessage(msg.chat.id, '퀴즈를 내고있지 않은걸요?');
