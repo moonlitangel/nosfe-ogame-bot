@@ -524,10 +524,12 @@ bot.onText(/^\/초성퀴즈 시작 (\d+)(.*)$/, (msg, match) => {
 
 bot.onText(/^\/초성퀴즈 힌트$/, (msg) => {
   // 힌트를 내도 되는 시간인지 확인
-  const distance = jqz[msg.chat.id].hintAt - Date.now();
-  if (distance > 0) {
-    return bot.sendMessage(msg.chat.id, `아직 힌트를 알려드리기엔 이른것 같아요. ${Math.floor(distance / 1000)}초를 더 기다려주세요.`);
-  }
+  if (jqz[msg.chat.id]) {
+    const distance = jqz[msg.chat.id].hintAt - Date.now();
+    if (distance > 0) {
+      return bot.sendMessage(msg.chat.id, `아직 힌트를 알려드리기엔 이른것 같아요. ${Math.floor(distance / 1000)}초를 더 기다려주세요.`);
+    }
+  } else return bot.sendMessage(msg.chat.id, '퀴즈를 내고있지 않은걸요?');
 
   // 퀴즈에서 힌트를 생성
   const hint = utils.makeHint(jqz[msg.chat.id].quiz, jqz[msg.chat.id].hintIndex);
