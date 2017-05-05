@@ -4,6 +4,8 @@ const mongoose = require('mongoose');  // 몽고DB 오브젝트 모델링
 const dotenv = require('dotenv');  // 환경변수 설정
 const _ = require('lodash');  // 자바스크립트 유틸리티
 const axios = require('axios');  // http 리퀘스트 클라이언트
+const vm = require('vm');
+const babel = require('babel-core');
 
 const express = require('express');  // http서버
 const compression = require('compression');  // gzip 압축 미들웨어
@@ -119,6 +121,17 @@ bot.onText(/^\/주사위 (\d+)$/, (msg, match) => {
   return bot.sendMessage(msg.chat.id, `[${random}]이 나왔어요.`);
 });
 
+bot.onText(/^\/eval (.+)$/, (msg, match) => {
+  const code = match[1];
+  try {
+    // const transformed = babel.transform(code, { plugins: ['transform-exponentiation-operator'] });
+    const compiled = new vm.Script(code);
+    const result = compiled.runInNewContext();
+    return bot.sendMessage(msg.chat.id, `${JSON.stringify(result)}`);
+  } catch (exception) {
+    return bot.sendMessage(msg.chat.id, 'ERROR');
+  }
+});
 
 /*
 * 챗방
