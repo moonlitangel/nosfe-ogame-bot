@@ -126,7 +126,7 @@ bot.onText(/^\/eval (.+)$/, (msg, match) => {
   try {
     // const transformed = babel.transform(code, { plugins: ['transform-exponentiation-operator'] });
     const compiled = new vm.Script(code);
-    const result = compiled.runInNewContext();
+    const result = compiled.runInNewContext({}, { timeout: 1000 });
     return bot.sendMessage(msg.chat.id, `${JSON.stringify(result)}`);
   } catch (exception) {
     return bot.sendMessage(msg.chat.id, 'ERROR');
