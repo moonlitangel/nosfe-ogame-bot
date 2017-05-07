@@ -72,6 +72,15 @@ function makeTitleName(data) {
   return title;
 }
 
+function makePm10Status(data) {
+  const statuses = assets.pm10Statuses;
+  let status;
+  _.forEach(statuses, (value, key) => {
+    if (data > key) status = value;
+  });
+  return status;
+}
+
 module.exports = {
-  contains, unique, hangulChosung, reverseString, makeHint, countIn, makeTitleName,
+  contains, unique, hangulChosung, reverseString, makeHint, countIn, makeTitleName, makePm10Status,
 };

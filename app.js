@@ -6,6 +6,7 @@ const _ = require('lodash');  // 자바스크립트 유틸리티
 const axios = require('axios');  // http 리퀘스트 클라이언트
 const vm = require('vm');
 const babel = require('babel-core');
+const parseXML = bluebird.promisify(require('xml2js').parseString);
 
 const express = require('express');  // http서버
 const compression = require('compression');  // gzip 압축 미들웨어
@@ -16,7 +17,7 @@ const randomstring = require('randomstring');
 
 const Models = require('./models');  // mongoose 모델
 const utils = require('./utils');  // 커스텀 유틸리티 함수
-
+const assets = require('./assets');
 
 /*
 * 환경설정
@@ -31,6 +32,7 @@ const GOOGLE_PROJECT_ID = process.env.GOOGLE_PROJECT_ID;  // 구글 API 프로�
 const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;  // 구글 API 키
 const GOOGLE_SEARCH_ID = process.env.GOOGLE_SEARCH_ID;  // 구글 검색엔진 ID
 const WOLFRAM_ALPHA_APPID = process.env.WOLFRAM_ALPHA_APPID;  // 울프람 알파 API 앱ID
+const AIRKOREA_SERVICE_KEY = process.env.AIRKOREA_SERVICE_KEY;
 const HINT_TERM_TIME = 30 * 1000;  // 힌트를 제공할 시간 간격값 (Default 30초)
 
 // 봇 생성
@@ -132,6 +134,31 @@ bot.onText(/^\/eval (.+)$/, (msg, match) => {
     return bot.sendMessage(msg.chat.id, 'ERROR');
   }
 });
+
+const airkorea = axios.create({
+  baseURL: 'http://openapi.airkorea.or.kr/openapi/services/rest',
+});
+
+bot.onText(/^\/미세먼지 (.+)/, (msg, match) => {
+  const query = match[1];
+  const city = assets.cities[query];
+  const params = {
+    itemCode: 'PM10',
+    dataGubun: 'HOUR',
+    searchCondition: 'WEEK',
+    pageNo: '1',
+    numOfRows: '10',
+    serviceKey: AIRKOREA_SERVICE_KEY,
+  };
+  return airkorea.get('/ArpltnInforInqireSvc/getCtprvnMesureLIst', { params })
+    .then(response => parseXML(response.data, { preserveChildrenOrder: true }))
+    .then((result) => {
+      const data = result.response.body[0].items[0].item[0][city][0];
+      const status = utils.makePm10Status(parseInt(data, 10));
+      return bot.sendMessage(msg.chat.id, `${query}의 미세먼지 농도는 ${data}µg/m³(${status})이에요.`);
+    });
+});
+
 
 /*
 * 챗방
