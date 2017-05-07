@@ -14,6 +14,7 @@ const cities = {
   대구: 'daegu',
   인천: 'incheon',
   광주: 'gwanju',
+  대전: 'daejeon',
   울산: 'ulsan',
   경기: 'gyeonggi',
   강원: 'gangwon',
