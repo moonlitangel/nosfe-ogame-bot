@@ -126,7 +126,6 @@ bot.onText(/^\/주사위 (\d+)$/, (msg, match) => {
 bot.onText(/^\/eval (.+)$/, (msg, match) => {
   const code = match[1];
   try {
-    // const transformed = babel.transform(code, { plugins: ['transform-exponentiation-operator'] });
     const compiled = new vm.Script(code);
     const result = compiled.runInNewContext({}, { timeout: 1000 });
     return bot.sendMessage(msg.chat.id, `${JSON.stringify(result)}`);
