@@ -141,7 +141,9 @@ const airkorea = axios.create({
 bot.onText(/^\/미세먼지 (.+)/, (msg, match) => {
   const query = match[1];
   const city = assets.cities[query];
-  const params = {
+  const station = assets.cityStations[query];
+
+  let params = {
     itemCode: 'PM10',
     dataGubun: 'HOUR',
     searchCondition: 'WEEK',
@@ -149,13 +151,33 @@ bot.onText(/^\/미세먼지 (.+)/, (msg, match) => {
     numOfRows: '10',
     serviceKey: AIRKOREA_SERVICE_KEY,
   };
-  return airkorea.get('/ArpltnInforInqireSvc/getCtprvnMesureLIst', { params })
-    .then(response => parseXML(response.data, { preserveChildrenOrder: true }))
-    .then((result) => {
-      const data = result.response.body[0].items[0].item[0][city][0];
-      const status = utils.makePm10Status(parseInt(data, 10));
-      return bot.sendMessage(msg.chat.id, `${query}의 미세먼지 농도는 ${data}µg/m³(${status})이에요.`);
-    });
+  let url = '/ArpltnInforInqireSvc/getCtprvnMesureLIst';
+
+  if (city) {
+    return airkorea.get(url, { params })
+      .then(response => parseXML(response.data, { preserveChildrenOrder: true }))
+      .then((result) => {
+        const data = result.response.body[0].items[0].item[0][city][0];
+        const status = utils.makePm10Status(parseInt(data, 10));
+        return bot.sendMessage(msg.chat.id, `${query}의 미세먼지 농도는 ${data}µg/m³(${status})이에요.`);
+      });
+  } else if (station) {
+    params = {
+      stationName: station,
+      dataTerm: 'daily',
+      serviceKey: AIRKOREA_SERVICE_KEY,
+      ver: '1.3',
+    };
+    url = '/ArpltnInforInqireSvc/getMsrstnAcctoRltmMesureDnsty';
+    return airkorea.get(url, { params })
+      .then(response => parseXML(response.data, { preserveChildrenOrder: true }))
+      .then((result) => {
+        const data = result.response.body[0].items[0].item[0].pm10Value[0];
+        const status = utils.makePm10Status(parseInt(data, 10));
+        return bot.sendMessage(msg.chat.id, `${query}의 미세먼지 농도는 ${data}µg/m³(${status})이에요.`);
+      });
+  }
+  return bot.sendMessage(msg.chat.id, `${query}에 대한 정보가 없어요.`);
 });
 
 

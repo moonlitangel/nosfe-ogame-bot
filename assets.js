@@ -28,6 +28,15 @@ const cities = {
   세종: 'sejong',
 };
 
+const cityStations = {
+  고양: '행신동',
+  일산: '행신동',
+  군포: '당동',
+  평택: '안중',
+  전주: '중앙동(전주)',
+  용인: '수지',
+};
+
 const pm10Statuses = {
   0: '좋음',
   30: '보통',
@@ -35,4 +44,4 @@ const pm10Statuses = {
   150: '매우나쁨',
 };
 
-module.exports = { titleNames, cities, pm10Statuses };
+module.exports = { titleNames, cities, cityStations, pm10Statuses };
