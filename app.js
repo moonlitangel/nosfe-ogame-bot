@@ -33,6 +33,7 @@ const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;  // 구글 API 키
 const GOOGLE_SEARCH_ID = process.env.GOOGLE_SEARCH_ID;  // 구글 검색엔진 ID
 const WOLFRAM_ALPHA_APPID = process.env.WOLFRAM_ALPHA_APPID;  // 울프람 알파 API 앱ID
 const AIRKOREA_SERVICE_KEY = process.env.AIRKOREA_SERVICE_KEY;
+const NOFETAN_CHAT_ID = parseInt(process.env.NOFETAN_CHAT_ID, 10);
 const HINT_TERM_TIME = 30 * 1000;  // 힌트를 제공할 시간 간격값 (Default 30초)
 
 // 봇 생성
@@ -180,6 +181,57 @@ bot.onText(/^\/미세먼지 (.+)/, (msg, match) => {
   return bot.sendMessage(msg.chat.id, `${query}에 대한 정보가 없어요.`);
 });
 
+/*
+* 코인원
+*/
+
+const coinone = axios.create({
+  baseURL: 'https://api.coinone.co.kr',
+});
+
+bot.onText(/^\/이더$/, (msg, match) => {
+  const params = { currency: 'all' };
+  const request = coinone.get('/ticker', { params });
+  request.then((response) => {
+    const data = response.data.eth;
+    const percent = parseInt(((data.last - data.first) / data.first) * 100, 10);
+    return bot.sendMessage(msg.chat.id, `이더리움의 최근 코인원 거래소 거래가격은 ${data.last}원이에요. 24시간동안 ${percent}% 상승했어요.`);
+  });
+});
+
+bot.onText(/^\/이더클$/, (msg, match) => {
+  const params = { currency: 'all' };
+  const request = coinone.get('/ticker', { params });
+  request.then((response) => {
+    const data = response.data.etc;
+    const percent = parseInt(((data.last - data.first) / data.first) * 100, 10);
+    return bot.sendMessage(msg.chat.id, `이더리움 클래식의 최근 코인원 거래소 거래가격은 ${data.last}원이에요. 24시간동안 ${percent}% 상승했어요.`);
+  });
+});
+
+
+// 60초에 한번씩 이더리움 가격을 확인
+let lastEthCurrency = 0;
+let currencyDelta = 1;
+setInterval(() => {
+  const params = { currency: 'all' };
+  const request = coinone.get('/ticker', { params });
+  request.then((response) => {
+    const ethCurrency = response.data.eth.last;
+    const ethPercent = ((ethCurrency - lastEthCurrency) / lastEthCurrency) * 100;
+    if (lastEthCurrency > 0 && (ethPercent > currencyDelta || ethPercent < (currencyDelta * -1))) {
+      bot.sendMessage(NOFETAN_CHAT_ID, `이더리움의 코인원 거래소 거래가격이 1분 사이에 ${Math.round(ethPercent * 10) / 10}% 변했어요! 지금 ${ethCurrency}원이에요.`);
+    }
+    lastEthCurrency = ethCurrency;
+    return true;
+  });
+}, 1000 * 60);
+
+bot.onText(/^\/이더 가격알림 (\d+)$/, (msg, match) => {
+  const number = match[1];
+  currencyDelta = parseInt(number, 10);
+  return bot.sendMessage(-1001085678860, `1분에 한번씩 이더리움의 코인원 거래소 가격을 보고, ${number}%이상 변하면 알려드릴게요.`);
+});
 
 /*
 * 챗방
