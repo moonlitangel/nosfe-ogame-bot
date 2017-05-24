@@ -234,6 +234,34 @@ bot.onText(/^\/이더 가격알림 (\d+)$/, (msg, match) => {
 });
 
 /*
+* 빗썸
+*/
+
+const bithumb = axios.create({
+  baseURL: 'https://api.bithumb.com/',
+});
+
+bot.onText(/^\/빗썸이더$/, (msg, match) => {
+  const params = { currency: 'ETH' };
+  const request = coinone.get('/ticker', { params });
+  request.then((response) => {
+    const data = response.data;
+    const percent = parseInt(((data.closing_price - data.opening_price) / data.opening_price) * 100, 10);
+    return bot.sendMessage(msg.chat.id, `이더리움의 최근 빗썸 거래소 거래가격은 ${closing_price}원이에요. 24시간동안 ${percent}% 상승했어요.`);
+  });
+});
+
+bot.onText(/^\/빗썸이더클$/, (msg, match) => {
+  const params = { currency: 'ETC' };
+  const request = coinone.get('/ticker', { params });
+  request.then((response) => {
+    const data = response.data;
+    const percent = parseInt(((data.closing_price - data.opening_price) / data.opening_price) * 100, 10);
+    return bot.sendMessage(msg.chat.id, `이더리움 클래식의 최근 빗썸 거래소 거래가격은 ${closing_price}원이에요. 24시간동안 ${percent}% 상승했어요.`);
+  });
+});
+
+/*
 * 챗방
 */
 
